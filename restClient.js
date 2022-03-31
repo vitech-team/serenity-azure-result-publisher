@@ -20,10 +20,10 @@ class RestClient {
      */
     _validate(options, name) {
         if (options == null) {
-            throw new Error("Missing Zephyr Scale options");
+            throw new Error("Missing options");
         }
         if (options[name] == null) {
-            throw new Error(`Missing ${name} value. Please update Zephyr Scale option in environment variables`);
+            throw new Error(`Missing ${name} value. Please update option in environment variables`);
         }
     }
 
@@ -47,8 +47,8 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _post(api, body, error = undefined, skipError = false) {
-        return this._request("POST", api, body, error, skipError);
+    _post(api, body, error = undefined, headers=this.headers, skipError = false) {
+        return this._request("POST", api, body, error, headers, skipError);
     }
 
     /**
@@ -84,8 +84,8 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _patch(api, error = undefined) {
-        return this._request("PATCH", api);
+    _patch(api, body, error = undefined, headers=this.headers) {
+        return this._request("PATCH", api, body, error, headers);
     }
 
     /**
@@ -98,9 +98,9 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _request(method, api, body = undefined, error = undefined, skipError = false) {
+    _request(method, api, body = undefined, error = undefined, headers=this.headers, skipError = false) {
         const option = {
-            headers: this.headers
+            headers: headers
         };
         if (body) {
             option["json"] = body

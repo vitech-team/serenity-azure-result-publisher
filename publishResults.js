@@ -1,22 +1,16 @@
 const fs = require('fs')
-const ZephyrScaleClient = require('./zephyrScaleClient.js')
-const JiraClient = require('./jiraClient.js')
+const devAzureClient = require('./devAzureClient.js')
 
 
 class PublishResults {
-    zephyr = new ZephyrScaleClient(
+    azure = new devAzureClient(
         {
-            'domain': process.env.ZEPHYR_DOMAIN,
-            'apiToken': process.env.ZEPHYR_TOKEN,
-            'projectKey': process.env.ZEPHYR_PROJECT_KEY,
-            'parentId': process.env.ZEPHYR_FOLDER_PARENT_ID,
-            'testCycleFolder': process.env.ZEPHYR_TEST_CYCLE_FOLDER
-        });
-
-    jira = new JiraClient(
-        {
-            'domain': process.env.JIRA_DOMAIN,
-            'apiToken': process.env.JIRA_TOKEN
+            'userName':process.env.AZURE_USER_NAME,
+            'token':process.env.AZURE_TOKEN,
+            'organization':process.env.AZURE_ORGANIZATION,
+            'projectId':process.env.AZURE_PROJECT_ID,
+            'testPlanId':process.env.AZURE_TEST_PLAN_ID,
+            'testSuiteParentId':process.env.AZURE_TEST_SUITE_PARENT_ID
         });
 
 
@@ -46,10 +40,11 @@ class PublishResults {
 
     addStep(step) {
         return {
-            "inline": {
-                "description": step
-            }
-        }
+                        "parameterizedString": [
+                            {'#text': step},
+                            {'#text':""}
+                        ]
+                    }
     }
 
 
@@ -88,31 +83,31 @@ class PublishResults {
 
     processResults() {
 
-        let cycleKey = this.zephyr.addTestRunCycle()
+        let testRunId = this.azure.addTestRun()
         let jsonFiles = this.getListOfFiles();
         for (let fileNameSequence = 0; fileNameSequence < jsonFiles.length; fileNameSequence++) {
             let json = this.readContent(jsonFiles[fileNameSequence]);
-            let issueId = this.jira.getIssueIdByKey(json.coreIssues)
+            // let issueId = this.jira.getIssueIdByKey(json.coreIssues)
             let folderName = json.featureTag.name.split('/')[0];
-            let folderId = this.zephyr.getFolderIdByTitle(folderName);
-            let suiteName = json.featureTag.name.split('/')[1];
+            let suiteId = this.azure.getSuiteIdByTitle(folderName);
+            let groupName = json.featureTag.name.split('/')[1];
             for (let testCaseSequence = 0; testCaseSequence < json.testSteps.length; testCaseSequence++) {
-                let testCaseName = suiteName;
+                let testCaseName = groupName;
                 for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
                     testCaseName = testCaseName + `: ${json.dataTable.rows[testCaseSequence].values[paramSequence]}`
                 }
                 let steps = []
                 let stepResult = []
-                let testCaseKey = this.zephyr.getTestCaseIdByTitle(testCaseName, folderId)
-                this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
+                let testCaseKey = this.azure.getTestCaseIdByTitle(testCaseName, suiteId)
+                this.azure.addTestCaseIssueLink(testCaseKey, json.coreIssues)
                 let testSteps = json.testSteps[testCaseSequence].children;
                 let testCaseResult = this.status[json.testSteps[testCaseSequence].result]
                 testSteps.forEach(step => {
                     steps.push(this.addStep(step.description))
                     stepResult.push(this.addStepResult(step))
                 });
-                this.zephyr.addStepsToTestCase(testCaseKey, steps)
-                this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
+                this.azure.addStepsToTestCase(testCaseKey, steps)
+                // this.azure.publishResults(testRunId, testCaseKey, testCaseResult, stepResult)
             }
 
         }
