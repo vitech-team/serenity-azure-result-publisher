@@ -258,15 +258,14 @@ class DevAzureClient extends RestClient {
      * @param cases
      * @param results
      */
-    publishResults(cycleKey, testCaseKey, testCaseResult, stepResult) {
-        let requestBody = {
-            "projectKey": this.options.projectKey,
-            "testCycleKey": cycleKey,
-            "testCaseKey": testCaseKey,
-            "statusName": testCaseResult,
-            "testScriptResults": stepResult
-        }
-        this._post(`testexecutions`, requestBody, undefined)
+    publishResults(runId, result) {
+        let headers = JSON.parse(JSON.stringify(this.headers))
+        headers["Content-Type"]="application/json"
+        this._post(`test/Runs/${runId}/Results`, result, undefined, headers)
+    }
+
+    getTestPoints (suiteId, testCaseId) {
+        return this._get(`test/Plans/${this.options.testPlanId}/Suites/${suiteId}/Points?testCaseId=${testCaseId}`).value[0].id
     }
 
 }
