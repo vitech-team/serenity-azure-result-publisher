@@ -138,11 +138,6 @@ class DevAzureClient extends RestClient {
         return response['id']
     }
 
-    filterJson(json, key, value) {
-        let filtered = json.filter(a => a[key] == value);
-        return filtered
-    }
-
     /**
      * Filter test cases response
      * @param data data
@@ -264,10 +259,27 @@ class DevAzureClient extends RestClient {
         this._post(`test/Runs/${runId}/Results`, result, undefined, headers)
     }
 
+    /**
+     * Returns testpoint value based on testCaseId and suiteId
+     * @param suiteId
+     * @param testCaseId
+     * @returns {*}
+     */
     getTestPoints (suiteId, testCaseId) {
         return this._get(`test/Plans/${this.options.testPlanId}/Suites/${suiteId}/Points?testCaseId=${testCaseId}`).value[0].id
     }
 
+    /**
+     * Coompletes testRun
+     * @param runId
+     */
+    completeTestRun(runId) {
+        let headers = JSON.parse(JSON.stringify(this.headers))
+        headers["Content-Type"]="application/json"
+        let result = {}
+        result.state = "Completed"
+        this._patch(`test/Runs/${runId}`, result, undefined, headers)
+    }
 }
 
 module.exports = DevAzureClient;

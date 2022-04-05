@@ -43,52 +43,28 @@ class PublishResults {
         }
     }
 
-
-    addActualResult(step) {
-        let actualResult = ''
-        if (step.screenshots) {
-            let imgUrl = `https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/${step.screenshots[0].screenshot}`
-            let resultImg = `<img src="${imgUrl}" />`
-            actualResult = actualResult.concat(resultImg)
-        }
-        if (step.exception) {
-            let exception = JSON.stringify(step.exception, undefined, 4)
-            exception = exception.replace(/\n/g, `<br>`)
-            exception = exception.replace(/\s/g, `&emsp;`)
-            actualResult = actualResult.concat(`<b>Stacktrace:</b><br>${exception}`)
-        }
-        return actualResult
-    }
-
-    addStepResult(step) {
-        let result = {}
-        if (step.result == undefined) {
-            step.children.forEach(child => {
-                if (['FAILURE', 'ERROR'].includes(child.result)) {
-                    step = child
-                }
-            })
-        }
-        result.statusName = this.statusMap[step.result]
-        let actualResult = this.addActualResult(step)
-        if (actualResult) {
-            result.actualResult = actualResult
-        }
-        return result;
-    }
-
-    addResult(name, testCaseId, testPointId, testSuiteId, status) {
-        return {
+    addResult(name, testCaseId, testPointId, testSuiteId, testCaseObject) {
+        let result = {
             "testCaseTitle": name, "testCaseRevision": 1, "testCase": {
                 "id": testCaseId
-            }, "testPoint": {
+            },
+            "testPoint": {
                 "id": testPointId
-            }, "testSuite": {
+            },
+            "testSuite": {
                 "id": testSuiteId
-            }, "testPlan": {
+            },
+            "testPlan": {
                 "id": process.env.AZURE_TEST_PLAN_ID
-            }, "outcome": status, "state": "Completed"
+            },
+            "outcome": this.statusMap[testCaseObject.result],
+            "state": "Completed"
         }
+        if (testCaseObject.exception) {
+            let exception = JSON.stringify(testCaseObject.exception, undefined, 4)
+            result.stackTrace = exception
+        }
+        return result;
     }
 
     processResults() {
@@ -108,18 +84,19 @@ class PublishResults {
                 let steps = []
                 let testCaseKey = this.azure.getTestCaseIdByTitle(testCaseName, suiteId)
                 this.azure.addTestCaseIssueLink(testCaseKey, json.coreIssues)
-                let testSteps = json.testSteps[testCaseSequence].children;
-                let testCaseResult = this.statusMap[json.result]
+                let testCaseObject = json.testSteps[testCaseSequence]
+                let testSteps = testCaseObject.children;
                 let testPointId = this.azure.getTestPoints(suiteId, testCaseKey)
-                result.push(this.addResult(testCaseName, testCaseKey, testPointId, suiteId, testCaseResult))
+                result.push(this.addResult(testCaseName, testCaseKey, testPointId, suiteId, testCaseObject))
+
                 testSteps.forEach(step => {
                     steps.push(this.addStep(step.description))
-                    // result.push(this.addStepResult(step))
                 });
                 this.azure.addStepsToTestCase(testCaseKey, steps)
             }
         }
         this.azure.publishResults(testRunId, result)
+        this.azure.completeTestRun(testRunId)
     }
 
 }

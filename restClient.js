@@ -47,8 +47,8 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _post(api, body, error = undefined, headers=this.headers, skipError = false) {
-        return this._request("POST", api, body, error, headers, skipError);
+    _post(api, body, error = undefined, headers=this.headers) {
+        return this._request("POST", api, body, error, headers);
     }
 
     /**
@@ -98,7 +98,7 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _request(method, api, body = undefined, error = undefined, headers=this.headers, skipError = false) {
+    _request(method, api, body = undefined, error = undefined, headers=this.headers) {
         const option = {
             headers: headers
         };
@@ -107,16 +107,13 @@ class RestClient {
         }
         let count = 0;
         let maxTries = process.env.MAX_RETRY || 3;
-        while (true && !skipError) {
+        while (true) {
             try {
                 let result = request(method, this._url(api), option);
                 return JSON.parse(result.getBody('utf8'));
             } catch (error) {
                 if (++count === maxTries) throw error;
             }
-        }
-        if (skipError) {
-            return request(method, this._url(api), option);
         }
     }
 
