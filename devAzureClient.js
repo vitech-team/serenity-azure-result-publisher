@@ -1,6 +1,7 @@
 const RestClient = require('./restClient.js')
 let base64 = require('base-64');
 let builder = require('xmlbuilder');
+require('dotenv').config();
 
 
 /**
@@ -43,7 +44,7 @@ class DevAzureClient extends RestClient {
     }
 
     getTestRunName() {
-        return `Run: ${process.env.RUN_ID} / Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`
+        return `Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`
     }
 
 

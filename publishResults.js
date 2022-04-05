@@ -1,5 +1,6 @@
 const fs = require('fs')
 const devAzureClient = require('./devAzureClient.js')
+require('dotenv').config();
 
 
 class PublishResults {
