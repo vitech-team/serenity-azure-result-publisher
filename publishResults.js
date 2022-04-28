@@ -90,7 +90,6 @@ class PublishResults {
                 let testSteps = testCaseObject.children;
                 let testPointId = this.azure.getTestPoints(suiteId, testCaseKey)
                 result.push(this.addResult(testCaseName, testCaseKey, testPointId, suiteId, testCaseObject))
-
                 if (testSteps) {
                     testSteps.forEach(step => {
                         steps.push(this.addStep(step.description))
