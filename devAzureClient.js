@@ -204,13 +204,15 @@ class DevAzureClient extends RestClient {
      * @param suiteName
      * @return suiteId
      */
-    getSuiteIdByTitle(suiteName, title) {
+    getSuiteIdByTitle(suiteName) {
         if (suiteName === undefined) {
-            throw new Error(`TestCase "${title}" does not have suite name, please add it`)
+            throw new Error(`TestCase "${suiteName}" does not have suite name, please add it`)
         }
         let data = this._get(`testplan/Plans/${this.options.testPlanId}/suites/${this.options.testSuiteParentId}?expand=children`)
         data = data.children
-        // data = this.filterJson(data, 'parentId', this.options.parentId)
+        if (!data){
+            return this.addSuite(suiteName)
+        }
         data = this.getDataDictByParams(data, 'name', 'id')
         let suites = [];
         for (let name in data) {

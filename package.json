@@ -4,7 +4,8 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "publisher": "node index.js"
+    "publisher": "node index.js",
+    "publish-karate": "node karate.js"
   },
   "dependencies": {
     "base-64": "^1.0.0",
