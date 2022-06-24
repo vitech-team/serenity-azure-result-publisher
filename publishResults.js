@@ -39,6 +39,17 @@ class PublishResults {
         return JSON.parse(fs.readFileSync(process.env.JSON_INPUT_PATH + filename))
     }
 
+    getTestCaseName(json, testCaseSequence) {
+        let testCaseName = json.featureTag.name.split('/')[1];
+        for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
+            if (json.dataTable.rows[testCaseSequence].values[paramSequence] != 'null') {
+                testCaseName = testCaseName + `: ${json.dataTable.rows[testCaseSequence].values[paramSequence]}`
+            }
+        }
+        return testCaseName
+
+    }
+
     addStep(step) {
         return {
             "parameterizedString": [{'#text': step}, {'#text': ""}]
@@ -77,12 +88,8 @@ class PublishResults {
             let json = this.readContent(jsonFiles[fileNameSequence]);
             let folderName = json.featureTag.name.split('/')[0];
             let suiteId = this.azure.getSuiteIdByTitle(folderName);
-            let groupName = json.featureTag.name.split('/')[1];
             for (let testCaseSequence = 0; testCaseSequence < json.testSteps.length; testCaseSequence++) {
-                let testCaseName = groupName;
-                for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
-                    testCaseName = testCaseName + `: ${json.dataTable.rows[testCaseSequence].values[paramSequence]}`
-                }
+                let testCaseName = this.getTestCaseName(json, testCaseSequence)
                 let steps = []
                 let testCaseKey = this.azure.getTestCaseIdByTitle(testCaseName, suiteId)
                 this.azure.addTestCaseIssueLink(testCaseKey, json.coreIssues)
