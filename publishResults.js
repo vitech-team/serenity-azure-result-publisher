@@ -41,9 +41,11 @@ class PublishResults {
 
     getTestCaseName(json, testCaseSequence) {
         let testCaseName = json.featureTag.name.split('/')[1];
-        for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
-            if (json.dataTable.rows[testCaseSequence].values[paramSequence] != 'null') {
-                testCaseName = testCaseName + `: ${json.dataTable.rows[testCaseSequence].values[paramSequence]}`
+        if (json.dataTable) {
+            for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
+                if (json.dataTable.rows[testCaseSequence].values[paramSequence] != 'null') {
+                    testCaseName = testCaseName + `: ${json.dataTable.rows[testCaseSequence].values[paramSequence]}`
+                }
             }
         }
         return testCaseName
@@ -97,7 +99,10 @@ class PublishResults {
                 let testSteps = testCaseObject.children;
                 let testPointId = this.azure.getTestPoints(suiteId, testCaseKey)
                 result.push(this.addResult(testCaseName, testCaseKey, testPointId, suiteId, testCaseObject))
-
+                if (json.dataTable==null) {
+                    testCaseSequence=9999
+                    testSteps = json.testSteps
+                }
                 if (testSteps) {
                     testSteps.forEach(step => {
                         steps.push(this.addStep(step.description))
