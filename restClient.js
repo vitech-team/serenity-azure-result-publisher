@@ -47,7 +47,7 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _post(api, body, error = undefined, headers=this.headers) {
+    _post(api, body, error = undefined, headers = this.headers) {
         return this._request("POST", api, body, error, headers);
     }
 
@@ -84,7 +84,7 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _patch(api, body, error = undefined, headers=this.headers) {
+    _patch(api, body, error = undefined, headers = this.headers) {
         return this._request("PATCH", api, body, error, headers);
     }
 
@@ -98,7 +98,7 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _request(method, api, body = undefined, error = undefined, headers=this.headers) {
+    _request(method, api, body = undefined, error = undefined, headers = this.headers) {
         const option = {
             headers: headers
         };
@@ -112,7 +112,12 @@ class RestClient {
                 let result = request(method, this._url(api), option);
                 return JSON.parse(result.getBody('utf8'));
             } catch (error) {
-                if (++count === maxTries) throw error;
+                if (++count === maxTries) throw {
+                    "method": method,
+                    "api": this._url(api),
+                    "body": body,
+                    "error": error
+                };
             }
         }
     }

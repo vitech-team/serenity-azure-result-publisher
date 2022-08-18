@@ -63,7 +63,7 @@ class DevAzureClient extends RestClient {
             "automated": true
         }
         let headers = JSON.parse(JSON.stringify(this.headers))
-        headers["Content-Type"]="application/json"
+        headers["Content-Type"] = "application/json"
         let response = this._post(`test/runs`, requestBody, undefined, headers)
         return response['id'];
     }
@@ -135,7 +135,7 @@ class DevAzureClient extends RestClient {
             }
         }
         let headers = JSON.parse(JSON.stringify(this.headers))
-        headers["Content-Type"]="application/json"
+        headers["Content-Type"] = "application/json"
         let response = this._post(`testplan/Plans/${this.options.testPlanId}/suites`, requestBody, undefined, headers)
         return response['id']
     }
@@ -210,12 +210,13 @@ class DevAzureClient extends RestClient {
         }
         let data = this._get(`testplan/Plans/${this.options.testPlanId}/suites/${this.options.testSuiteParentId}?expand=children`)
         data = data.children
-        // data = this.filterJson(data, 'parentId', this.options.parentId)
-        data = this.getDataDictByParams(data, 'name', 'id')
         let suites = [];
-        for (let name in data) {
-            if (name === suiteName) {
-                suites.push(data[name])
+        if (data) {
+            data = this.getDataDictByParams(data, 'name', 'id')
+            for (let name in data) {
+                if (name === suiteName) {
+                    suites.push(data[name])
+                }
             }
         }
         if (suites.length > 1) {
@@ -257,7 +258,7 @@ class DevAzureClient extends RestClient {
      */
     publishResults(runId, result) {
         let headers = JSON.parse(JSON.stringify(this.headers))
-        headers["Content-Type"]="application/json"
+        headers["Content-Type"] = "application/json"
         this._post(`test/Runs/${runId}/Results`, result, undefined, headers)
     }
 
@@ -267,7 +268,7 @@ class DevAzureClient extends RestClient {
      * @param testCaseId
      * @returns {*}
      */
-    getTestPoints (suiteId, testCaseId) {
+    getTestPoints(suiteId, testCaseId) {
         return this._get(`test/Plans/${this.options.testPlanId}/Suites/${suiteId}/Points?testCaseId=${testCaseId}`).value[0].id
     }
 
@@ -277,7 +278,7 @@ class DevAzureClient extends RestClient {
      */
     completeTestRun(runId) {
         let headers = JSON.parse(JSON.stringify(this.headers))
-        headers["Content-Type"]="application/json"
+        headers["Content-Type"] = "application/json"
         let result = {}
         result.state = "Completed"
         this._patch(`test/Runs/${runId}`, result, undefined, headers)
