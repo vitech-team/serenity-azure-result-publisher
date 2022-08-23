@@ -117,7 +117,7 @@ class RestClient {
                     "api": this._url(api),
                     "body": body,
                     "error": error,
-                    "env_variables": process.env
+//                     "env_variables": process.env
                 };
             }
         }
