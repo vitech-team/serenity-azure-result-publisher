@@ -90,25 +90,27 @@ class PublishResults {
             let json = this.readContent(jsonFiles[fileNameSequence]);
             let folderName = json.featureTag.name.split('/')[0];
             let suiteId = this.azure.getSuiteIdByTitle(folderName);
-            for (let testCaseSequence = 0; testCaseSequence < json.testSteps.length; testCaseSequence++) {
-                let testCaseName = this.getTestCaseName(json, testCaseSequence)
-                let steps = []
-                let testCaseKey = this.azure.getTestCaseIdByTitle(testCaseName, suiteId)
-                this.azure.addTestCaseIssueLink(testCaseKey, json.coreIssues)
-                let testCaseObject = json.testSteps[testCaseSequence]
-                let testSteps = testCaseObject.children;
-                let testPointId = this.azure.getTestPoints(suiteId, testCaseKey)
-                result.push(this.addResult(testCaseName, testCaseKey, testPointId, suiteId, testCaseObject))
-                if (json.dataTable==null) {
-                    testCaseSequence=9999
-                    testSteps = json.testSteps
+            if (json.result !== "IGNORED") {
+                for (let testCaseSequence = 0; testCaseSequence < json.testSteps.length; testCaseSequence++) {
+                    let testCaseName = this.getTestCaseName(json, testCaseSequence)
+                    let steps = []
+                    let testCaseKey = this.azure.getTestCaseIdByTitle(testCaseName, suiteId)
+                    this.azure.addTestCaseIssueLink(testCaseKey, json.coreIssues)
+                    let testCaseObject = json.testSteps[testCaseSequence]
+                    let testSteps = testCaseObject.children;
+                    let testPointId = this.azure.getTestPoints(suiteId, testCaseKey)
+                    result.push(this.addResult(testCaseName, testCaseKey, testPointId, suiteId, testCaseObject))
+                    if (json.dataTable == null) {
+                        testCaseSequence = 9999
+                        testSteps = json.testSteps
+                    }
+                    if (testSteps) {
+                        testSteps.forEach(step => {
+                            steps.push(this.addStep(step.description))
+                        });
+                    }
+                    this.azure.addStepsToTestCase(testCaseKey, steps)
                 }
-                if (testSteps) {
-                    testSteps.forEach(step => {
-                        steps.push(this.addStep(step.description))
-                    });
-                }
-                this.azure.addStepsToTestCase(testCaseKey, steps)
             }
         }
         this.azure.publishResults(testRunId, result)
