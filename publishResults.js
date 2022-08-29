@@ -40,7 +40,7 @@ class PublishResults {
     }
 
     getTestCaseName(json, testCaseSequence) {
-        let testCaseName = json.featureTag.name.split('/')[1];
+        let testCaseName = json.title;
         if (json.dataTable) {
             for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
                 if (json.dataTable.rows[testCaseSequence].values[paramSequence] != 'null') {
@@ -86,13 +86,15 @@ class PublishResults {
         let result = []
         let testRunId = this.azure.addTestRun()
         let jsonFiles = this.getListOfFiles();
-        for (let fileNameSequence = 0; fileNameSequence < jsonFiles.length; fileNameSequence++) {
+        let jsonFilesCount = jsonFiles.length;
+        for (let fileNameSequence = 0; fileNameSequence < jsonFilesCount; fileNameSequence++) {
             let json = this.readContent(jsonFiles[fileNameSequence]);
             let folderName = json.featureTag.name.split('/')[0];
             let suiteId = this.azure.getSuiteIdByTitle(folderName);
             if (json.result !== "IGNORED") {
                 for (let testCaseSequence = 0; testCaseSequence < json.testSteps.length; testCaseSequence++) {
                     let testCaseName = this.getTestCaseName(json, testCaseSequence)
+                    console.debug(`(${fileNameSequence+1}/${jsonFilesCount}): ${testCaseName}`)
                     let steps = []
                     let testCaseKey = this.azure.getTestCaseIdByTitle(testCaseName, suiteId)
                     this.azure.addTestCaseIssueLink(testCaseKey, json.coreIssues)
