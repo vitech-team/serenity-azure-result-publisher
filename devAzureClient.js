@@ -235,19 +235,18 @@ class DevAzureClient extends RestClient {
      */
     addTestCaseIssueLink(testCaseId, storyId) {
         if (storyId) {
+            let requestBody = []
             for (let i in storyId) {
-                let requestBody = [
-                    {
-                        "op": "add",
-                        "path": "/relations/-",
-                        "value": {
-                            "rel": "Microsoft.VSTS.Common.TestedBy-Reverse",
-                            "url": `${this.base}/wit/workItems/${storyId[i]}`
-                        }
+                requestBody.push({
+                    "op": "add",
+                    "path": "/relations/-",
+                    "value": {
+                        "rel": "Microsoft.VSTS.Common.TestedBy-Reverse",
+                        "url": `${this.base}/wit/workItems/${storyId[i]}`
                     }
-                ]
-                this._patch(`wit/workitems/${testCaseId}`, requestBody)
+                })
             }
+            this._patch(`wit/workitems/${testCaseId}`, requestBody)
         }
     }
 
