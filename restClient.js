@@ -110,6 +110,7 @@ class RestClient {
         while (true) {
             try {
                 let result = request(method, this._url(api), option);
+                console.log(`Request: ${method} ${this._url(api)} ${result.statusCode}`);
                 return JSON.parse(result.getBody('utf8'));
             } catch (error) {
                 if (++count === maxTries) throw {
