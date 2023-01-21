@@ -22,6 +22,8 @@ class PublishResults {
         'IGNORED': 'NotApplicable'
     };
 
+    chunkSize = process.env.AZURE_CHUNK_SIZE || 10;
+
 
     getListOfFiles(src = process.env.JSON_INPUT_PATH) {
         let jsonFiles = [];
@@ -37,6 +39,15 @@ class PublishResults {
 
     readContent(filename) {
         return JSON.parse(fs.readFileSync(process.env.JSON_INPUT_PATH + filename))
+    }
+
+    sliceArray(array, chunkSize = this.chunkSize) {
+        chunkSize = Number.parseInt(chunkSize)
+        let result = [];
+        for (let i = 0; i < array.length; i += chunkSize) {
+            result.push(array.slice(i, i + chunkSize));
+        }
+        return result;
     }
 
     getTestCaseName(json, testCaseSequence) {
@@ -82,43 +93,60 @@ class PublishResults {
         return result;
     }
 
-    processResults() {
-        let result = []
-        let testRunId = this.azure.addTestRun()
-        let jsonFiles = this.getListOfFiles();
-        let jsonFilesCount = jsonFiles.length;
-        for (let fileNameSequence = 0; fileNameSequence < jsonFilesCount; fileNameSequence++) {
-            let json = this.readContent(jsonFiles[fileNameSequence]);
-            let folderName = json.featureTag.name.split('/')[0];
-            let suiteId = this.azure.getSuiteIdByTitle(folderName);
-            if (json.result !== "IGNORED") {
-                for (let testCaseSequence = 0; testCaseSequence < json.testSteps.length; testCaseSequence++) {
-                    let testCaseName = this.getTestCaseName(json, testCaseSequence)
-                    console.debug(`(${fileNameSequence+1}/${jsonFilesCount}): ${testCaseName}`)
-                    let steps = []
-                    let testCaseKey = this.azure.getTestCaseIdByTitle(testCaseName, suiteId)
-                    this.azure.addTestCaseIssueLink(testCaseKey, json.coreIssues)
-                    let testCaseObject = json.testSteps[testCaseSequence]
-                    let testSteps = testCaseObject.children;
-                    let testPointId = this.azure.getTestPoints(suiteId, testCaseKey)
-                    result.push(this.addResult(testCaseName, testCaseKey, testPointId, suiteId, testCaseObject))
-                    if (json.dataTable == null) {
-                        testCaseSequence = 9999
-                        testSteps = json.testSteps
+    processFiles(files) {
+        return new Promise(async (resolve) => {
+            let result = []
+            for (const file of files) {
+                let json = this.readContent(file);
+                let folderName = json.featureTag.name.split('/')[0];
+                let suiteId = await this.azure.getSuiteIdByTitle(folderName);
+                if (json.result !== "IGNORED") {
+                    for (let testCaseSequence = 0; testCaseSequence < json.testSteps.length; testCaseSequence++) {
+                        let testCaseName = this.getTestCaseName(json, testCaseSequence)
+                        let steps = []
+                        let testCaseKey = await this.azure.getTestCaseIdByTitle(testCaseName, suiteId)
+                        await this.azure.addTestCaseIssueLink(testCaseKey, json.coreIssues)
+                        let testCaseObject = json.testSteps[testCaseSequence]
+                        let testSteps = testCaseObject.children;
+                        let testPointId = await this.azure.getTestPoints(suiteId, testCaseKey)
+                        result.push(this.addResult(testCaseName, testCaseKey, testPointId, suiteId, testCaseObject))
+                        if (json.dataTable == null) {
+                            testCaseSequence = 9999
+                            testSteps = json.testSteps
+                        }
+                        if (testSteps) {
+                            testSteps.forEach(step => {
+                                steps.push(this.addStep(step.description))
+                            });
+                        }
+                        await this.azure.addStepsToTestCase(testCaseKey, steps)
                     }
-                    if (testSteps) {
-                        testSteps.forEach(step => {
-                            steps.push(this.addStep(step.description))
-                        });
-                    }
-                    this.azure.addStepsToTestCase(testCaseKey, steps)
                 }
             }
-        }
-        this.azure.publishResults(testRunId, result)
-        this.azure.completeTestRun(testRunId)
+            resolve(result);
+        })
     }
 
+
+    async processResults() {
+        let processedFiles = []
+        let testRunId = await this.azure.addTestRun()
+        let jsonFiles = this.getListOfFiles();
+        let jsonSlices = this.sliceArray(jsonFiles);
+        for (const jsonSlice of jsonSlices) {
+            processedFiles.push(this.processFiles(jsonSlice))
+        }
+        Promise.all(processedFiles).then(async (resultsArray) => {
+            let results = []
+            resultsArray.forEach(resultItem => {
+                results = [...resultItem, ...results]
+            })
+            await this.azure.publishResults(testRunId, results)
+            await this.azure.completeTestRun(testRunId)
+        }).catch((error) => {
+            console.log(error)
+        })
+    }
 }
 
 module.exports = PublishResults;
