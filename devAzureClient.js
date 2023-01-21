@@ -54,7 +54,7 @@ class DevAzureClient extends RestClient {
      * @param planId
      * @returns id of created test run
      */
-    addTestRun(testRunName = this.getTestRunName(), planId = this.options.testPlanId) {
+    async addTestRun(testRunName = this.getTestRunName(), planId = this.options.testPlanId) {
         let requestBody = {
             "name": testRunName,
             "plan": {
@@ -64,7 +64,7 @@ class DevAzureClient extends RestClient {
         }
         let headers = JSON.parse(JSON.stringify(this.headers))
         headers["Content-Type"] = "application/json"
-        let response = this._post(`test/runs`, requestBody, undefined, headers)
+        let response = await this._post(`test/runs`, requestBody, undefined, headers)
         return response['id'];
     }
 
@@ -74,7 +74,7 @@ class DevAzureClient extends RestClient {
      * @param suiteId
      * @return testCaseId of created testCase
      */
-    addTestCase(name, suiteId) {
+    async addTestCase(name, suiteId) {
         let requestBody = [
             {
                 "op": "add",
@@ -92,7 +92,7 @@ class DevAzureClient extends RestClient {
                 "value": "Automated"
             }
         ]
-        let response = this._post(`wit/workitems/$Test%20Case`, requestBody);
+        let response = await this._post(`wit/workitems/$Test%20Case`, requestBody);
         let testCaseId = response['id']
         this._post(`test/Plans/${this.options.testPlanId}/suites/${suiteId}/testcases/${testCaseId}`)
         return testCaseId
@@ -103,7 +103,7 @@ class DevAzureClient extends RestClient {
      * @param testCaseId
      * @param steps
      */
-    addStepsToTestCase(testCaseId, steps) {
+    async addStepsToTestCase(testCaseId, steps) {
         let obj = {
             'steps': {
                 "step": steps
@@ -118,7 +118,7 @@ class DevAzureClient extends RestClient {
             }
         ]
 
-        this._patch(`wit/workitems/${testCaseId}`, requestBody)
+        await this._patch(`wit/workitems/${testCaseId}`, requestBody)
     }
 
     /**
@@ -126,7 +126,7 @@ class DevAzureClient extends RestClient {
      * @param name
      * @return suiteId of created section
      */
-    addSuite(name, parentId = this.options.testSuiteParentId) {
+    async addSuite(name, parentId = this.options.testSuiteParentId) {
         let requestBody = {
             "suiteType": "StaticTestSuite",
             "name": name,
@@ -136,7 +136,7 @@ class DevAzureClient extends RestClient {
         }
         let headers = JSON.parse(JSON.stringify(this.headers))
         headers["Content-Type"] = "application/json"
-        let response = this._post(`testplan/Plans/${this.options.testPlanId}/suites`, requestBody, undefined, headers)
+        let response = await this._post(`testplan/Plans/${this.options.testPlanId}/suites`, requestBody, undefined, headers)
         return response['id']
     }
 
@@ -175,8 +175,8 @@ class DevAzureClient extends RestClient {
      * @param suiteId
      * @return testCaseId
      */
-    getTestCaseIdByTitle(title, suiteId) {
-        let data = this._get(`testplan/Plans/${this.options.testPlanId}/Suites/${suiteId}/TestCase?excludeFlags=3&witFields=System.WorkItemType%2CSystem.Title`)
+    async getTestCaseIdByTitle(title, suiteId) {
+        let data = await this._get(`testplan/Plans/${this.options.testPlanId}/Suites/${suiteId}/TestCase?excludeFlags=3&witFields=System.WorkItemType%2CSystem.Title`)
         data = data.value
         data = this.filterTestCasesResponse(data)
         let cases = [];
@@ -191,7 +191,7 @@ class DevAzureClient extends RestClient {
         if (cases.length > 1) {
             throw new Error(`In suite ${suiteId} were found ${cases.length} cases with the same test case name - ${title}`)
         } else if (cases.length === 0) {
-            return this.addTestCase(title, suiteId)
+            return await this.addTestCase(title, suiteId)
         } else {
             return cases[0]
         }
@@ -204,11 +204,11 @@ class DevAzureClient extends RestClient {
      * @param suiteName
      * @return suiteId
      */
-    getSuiteIdByTitle(suiteName, title) {
+    async getSuiteIdByTitle(suiteName, title) {
         if (suiteName === undefined) {
             throw new Error(`TestCase "${title}" does not have suite name, please add it`)
         }
-        let data = this._get(`testplan/Plans/${this.options.testPlanId}/suites/${this.options.testSuiteParentId}?expand=children`)
+        let data = await this._get(`testplan/Plans/${this.options.testPlanId}/suites/${this.options.testSuiteParentId}?expand=children`)
         data = data.children
         let suites = [];
         if (data) {
@@ -222,7 +222,7 @@ class DevAzureClient extends RestClient {
         if (suites.length > 1) {
             throw new Error(`In project ${this.options.projectKey} were found ${suites.length} folders with the same folder name - ${name}`)
         } else if (suites.length === 0) {
-            return this.addSuite(suiteName)
+            return await this.addSuite(suiteName)
         } else {
             return suites[0]
         }
@@ -233,7 +233,7 @@ class DevAzureClient extends RestClient {
      * @param testCaseId
      * @param issueId
      */
-    addTestCaseIssueLink(testCaseId, storyId) {
+    async addTestCaseIssueLink(testCaseId, storyId) {
         if (storyId) {
             let requestBody = []
             for (let i in storyId) {
@@ -246,7 +246,7 @@ class DevAzureClient extends RestClient {
                     }
                 })
             }
-            this._patch(`wit/workitems/${testCaseId}`, requestBody)
+            await this._patch(`wit/workitems/${testCaseId}`, requestBody)
         }
     }
 
@@ -255,10 +255,10 @@ class DevAzureClient extends RestClient {
      * @param cases
      * @param results
      */
-    publishResults(runId, result) {
+    async publishResults(runId, result) {
         let headers = JSON.parse(JSON.stringify(this.headers))
         headers["Content-Type"] = "application/json"
-        this._post(`test/Runs/${runId}/Results`, result, undefined, headers)
+        await this._post(`test/Runs/${runId}/Results`, result, undefined, headers)
     }
 
     /**
@@ -267,20 +267,21 @@ class DevAzureClient extends RestClient {
      * @param testCaseId
      * @returns {*}
      */
-    getTestPoints(suiteId, testCaseId) {
-        return this._get(`test/Plans/${this.options.testPlanId}/Suites/${suiteId}/Points?testCaseId=${testCaseId}`).value[0].id
+    async getTestPoints(suiteId, testCaseId) {
+        let result = await this._get(`test/Plans/${this.options.testPlanId}/Suites/${suiteId}/Points?testCaseId=${testCaseId}`)
+        return result.value[0].id
     }
 
     /**
      * Coompletes testRun
      * @param runId
      */
-    completeTestRun(runId) {
+    async completeTestRun(runId) {
         let headers = JSON.parse(JSON.stringify(this.headers))
         headers["Content-Type"] = "application/json"
         let result = {}
         result.state = "Completed"
-        this._patch(`test/Runs/${runId}`, result, undefined, headers)
+        await this._patch(`test/Runs/${runId}`, result, undefined, headers)
     }
 }
 

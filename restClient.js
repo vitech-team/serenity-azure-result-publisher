@@ -1,4 +1,4 @@
-const request = require("sync-request");
+const axios = require('axios');
 
 /**
  * Rest client
@@ -47,8 +47,8 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _post(api, body, error = undefined, headers = this.headers) {
-        return this._request("POST", api, body, error, headers);
+    async _post(api, body, error = undefined, headers = this.headers) {
+        return await this._request("POST", api, body, error, headers);
     }
 
     /**
@@ -60,8 +60,8 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _put(api, body, error = undefined) {
-        return this._request("PUT", api, body, error);
+    async _put(api, body, error = undefined) {
+        return await this._request("PUT", api, body, error);
     }
 
     /**
@@ -72,8 +72,8 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _get(api, error = undefined) {
-        return this._request("GET", api);
+    async _get(api, error = undefined) {
+        return await this._request("GET", api);
     }
 
     /**
@@ -84,8 +84,8 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _patch(api, body, error = undefined, headers = this.headers) {
-        return this._request("PATCH", api, body, error, headers);
+    async _patch(api, body, error = undefined, headers = this.headers) {
+        return await this._request("PATCH", api, body, error, headers);
     }
 
     /**
@@ -98,20 +98,19 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _request(method, api, body = undefined, error = undefined, headers = this.headers) {
-        const option = {
-            headers: headers
-        };
-        if (body) {
-            option["json"] = body
-        }
+    async _request(method, api, body = undefined, error = undefined, headers = this.headers) {
         let count = 0;
         let maxTries = process.env.MAX_RETRY || 3;
         while (true) {
             try {
-                let result = request(method, this._url(api), option);
-                console.log(`Request: ${method} ${this._url(api)} ${result.statusCode}`);
-                return JSON.parse(result.getBody('utf8'));
+                let result = await axios({
+                    method: method,
+                    url: this._url(api),
+                    headers: headers,
+                    data: body
+                })
+                await console.log(`Request: ${method} ${this._url(api)} ${result.status}`);
+                return result.data;
             } catch (error) {
                 if (++count === maxTries) throw {
                     "method": method,
