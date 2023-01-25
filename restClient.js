@@ -108,7 +108,7 @@ class RestClient {
                     url: this._url(api),
                     headers: headers,
                     data: body
-                })
+                }).catch((error) => {console.error(error)});
                 await console.log(`Request: ${method} ${this._url(api)} ${result.status}`);
                 return result.data;
             } catch (error) {

@@ -269,7 +269,10 @@ class DevAzureClient extends RestClient {
      */
     async getTestPoints(suiteId, testCaseId) {
         let result = await this._get(`test/Plans/${this.options.testPlanId}/Suites/${suiteId}/Points?testCaseId=${testCaseId}`)
-        return result.value[0].id
+        if (result.value[0]?.id == undefined){
+            console.log(`Test point for test case ${testCaseId} in suite ${suiteId} was not found`)
+        }
+        return result.value[0]?.id
     }
 
     /**
