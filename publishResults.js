@@ -9,6 +9,7 @@ class PublishResults {
         'token': process.env.AZURE_TOKEN,
         'organization': process.env.AZURE_ORGANIZATION,
         'projectId': process.env.AZURE_PROJECT_ID,
+        'azureAreaPath': process.env.AZURE_AREA_PATH,
         'testPlanId': process.env.AZURE_TEST_PLAN_ID,
         'testSuiteParentId': process.env.AZURE_TEST_SUITE_PARENT_ID
     });

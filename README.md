@@ -5,6 +5,7 @@
 JSON_INPUT_PATH= #path_to_serenity_report_results
 AZURE_ORGANIZATION=#devops_azure_organization
 AZURE_PROJECT_ID=#devops_azure_project_id
+AZURE_AREA_PATH=#devops_azure_area_path
 AZURE_TEST_PLAN_ID=#devops_azure_test_plan_id
 AZURE_TEST_SUITE_PARENT_ID=#devops_azure_test_suite-parent_id
 AZURE_USER_NAME=#devops_azure_user_name

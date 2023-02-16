@@ -20,6 +20,7 @@ class DevAzureClient extends RestClient {
         this._validate(options, 'token');
         this._validate(options, 'organization');
         this._validate(options, 'projectId');
+        this._validate(options, 'azureAreaPath');
         this._validate(options, 'testPlanId');
         this._validate(options, 'testSuiteParentId');
 
@@ -80,6 +81,11 @@ class DevAzureClient extends RestClient {
                 "op": "add",
                 "path": "/fields/System.Title",
                 "value": name
+            },
+            {
+                "op": "add",
+                "path": "/fields/System.AreaPath",
+                "value": this.options.azureAreaPath
             },
             {
                 "op": "add",
