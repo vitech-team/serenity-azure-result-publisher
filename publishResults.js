@@ -14,7 +14,7 @@ class PublishResults {
         'testPlanId': process.env.AZURE_TEST_PLAN_ID,
         'testSuiteParentId': process.env.AZURE_TEST_SUITE_PARENT_ID
     });
-    report = new report(process.env.REPORT_TYPE);
+    report = new report(process.env.REPORT_TYPE || "SerenityReport");
     chunkSize = process.env.AZURE_CHUNK_SIZE || 10;
 
     getListOfFiles(src = process.env.JSON_INPUT_PATH) {
