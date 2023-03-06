@@ -2,7 +2,8 @@
 
 ## Configuration publisher
 ```
-JSON_INPUT_PATH= #path_to_serenity_report_results
+JSON_INPUT_PATH= #path_to_report_results
+REPORT_TYPE=#report_type
 AZURE_ORGANIZATION=#devops_azure_organization
 AZURE_PROJECT_ID=#devops_azure_project_id
 AZURE_AREA_PATH=#devops_azure_area_path

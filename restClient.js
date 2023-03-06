@@ -10,7 +10,6 @@ class RestClient {
 
     }
 
-
     /**
      * Validate config values
      *
@@ -122,8 +121,6 @@ class RestClient {
             }
         }
     }
-
-
 }
 
 module.exports = RestClient;
