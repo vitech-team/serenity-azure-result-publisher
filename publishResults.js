@@ -70,13 +70,15 @@ class PublishResults {
             for (const file of files) {
                 let json = this.readContent(file);
                 let parsedTests = this.report.parser.parse(json);
-                let suiteId = await this.azure.getSuiteIdByTitle(parsedTests[0].folderName);
-                for (let parsedTest of parsedTests) {
-                    let testCaseKey = await this.azure.getTestCaseIdByTitle(parsedTest.testCaseName, suiteId);
-                    await this.azure.addTestCaseIssueLink(testCaseKey, parsedTest.linkedItems);
-                    let testPointId = await this.azure.getTestPoints(suiteId, testCaseKey);
-                    result.push(this.addResult(parsedTest.testCaseName, testCaseKey, testPointId, suiteId, parsedTest))
-                    await this.azure.addStepsToTestCase(testCaseKey, parsedTest.testSteps)
+                if (parsedTests.length > 0) {
+                    let suiteId = await this.azure.getSuiteIdByTitle(parsedTests[0].folderName);
+                    for (let parsedTest of parsedTests) {
+                        let testCaseKey = await this.azure.getTestCaseIdByTitle(parsedTest.testCaseName, suiteId);
+                        await this.azure.addTestCaseIssueLink(testCaseKey, parsedTest.linkedItems);
+                        let testPointId = await this.azure.getTestPoints(suiteId, testCaseKey);
+                        result.push(this.addResult(parsedTest.testCaseName, testCaseKey, testPointId, suiteId, parsedTest))
+                        await this.azure.addStepsToTestCase(testCaseKey, parsedTest.testSteps)
+                    }
                 }
             }
             resolve(result);
@@ -96,7 +98,9 @@ class PublishResults {
             resultsArray.forEach(resultItem => {
                 results = [...resultItem, ...results]
             })
-            await this.azure.publishResults(testRunId, results)
+            if (results.length > 0) {
+                await this.azure.publishResults(testRunId, results)
+            }
             await this.azure.completeTestRun(testRunId)
         }).catch((error) => {
             console.log(error)

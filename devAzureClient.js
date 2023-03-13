@@ -240,7 +240,7 @@ class DevAzureClient extends RestClient {
      * @param issueId
      */
     async addTestCaseIssueLink(testCaseId, storyId) {
-        if (storyId) {
+        if (storyId.length > 0) {
             let requestBody = []
             for (let i in storyId) {
                 requestBody.push({
@@ -275,7 +275,7 @@ class DevAzureClient extends RestClient {
      */
     async getTestPoints(suiteId, testCaseId) {
         let result = await this._get(`test/Plans/${this.options.testPlanId}/Suites/${suiteId}/Points?testCaseId=${testCaseId}`)
-        if (result.value[0]?.id == undefined){
+        if (result.value[0]?.id == undefined) {
             console.log(`Test point for test case ${testCaseId} in suite ${suiteId} was not found`)
         }
         return result.value[0]?.id
