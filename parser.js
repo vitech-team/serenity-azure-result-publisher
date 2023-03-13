@@ -9,7 +9,10 @@ class SerenityParser {
         let parsedReport = [];
         if (!json[this.fields.status].includes("IGNORED")) {
             let folderName = this.getFolderName(json);
-            let linkedItems = json.coreIssues;
+            let linkedItems = [];
+            if (json.coreIssues !== undefined) {
+                linkedItems = json.coreIssues;
+            }
             for (let testCaseSequence = 0; testCaseSequence < json[this.fields.testSteps].length; testCaseSequence++) {
                 let testCaseName = this.getTestCaseName(json, testCaseSequence);
 
@@ -69,7 +72,7 @@ class AllureParser {
 
     parse(json) {
         let parsedReport = [];
-        if (!json[this.fields.status].includes("skipped")) {
+        if (!json[this.fields.status].includes("skipped") && this.isIntegrationTest(json)) {
             let folderName = this.getFolderName(json);
             let testCaseName = json[this.fields.testCaseTitle];
             let testSteps = [];
@@ -87,9 +90,23 @@ class AllureParser {
     }
 
     getFolderName(json) {
-        let packages = json.labels[6].value.split('.');
+        let packages;
+        Object.keys(json.labels).forEach(function (key) {
+            if (json.labels[key].name === "testClass")
+                packages = json.labels[key].value.split('.');
+        });
         let packageIndex = packages.length - 2;
         return packages[packageIndex];
+    }
+
+    isIntegrationTest(json) {
+        for (let key in json.labels) {
+            console.log(json.labels[key].name);
+            if (json.labels[key].name === "tag" && json?.labels[key].value.toLowerCase() === "integration test") {
+                return true
+            }
+        }
+        return false;
     }
 }
 
