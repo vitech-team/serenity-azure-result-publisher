@@ -110,6 +110,7 @@ class AllureParser {
     }
 }
 
+
 module.exports = {
     SerenityParser: SerenityParser,
     AllureParser: AllureParser
