@@ -90,7 +90,12 @@ class DevAzureClient extends RestClient {
             {
                 "op": "add",
                 "path": "/fields/System.State",
-                "value": "Design"
+                "value": "Ready"
+            },
+            {
+                "op": "add",
+                "path": "/fields/System.Reason",
+                "value": "Completed"
             },
             {
                 "op": "add",
