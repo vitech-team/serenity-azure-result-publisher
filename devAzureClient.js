@@ -90,12 +90,7 @@ class DevAzureClient extends RestClient {
             {
                 "op": "add",
                 "path": "/fields/System.State",
-                "value": "Ready"
-            },
-            {
-                "op": "add",
-                "path": "/fields/System.Reason",
-                "value": "Completed"
+                "value": "Design"
             },
             {
                 "op": "add",
@@ -126,17 +121,7 @@ class DevAzureClient extends RestClient {
                 "op": "replace",
                 "path": "/fields/Microsoft.VSTS.TCM.Steps",
                 "value": xml
-            },
-            {
-                "op": "add",
-                "path": "/fields/System.State",
-                "value": "Ready"
-            },
-            {
-                "op": "add",
-                "path": "/fields/System.Reason",
-                "value": "Completed"
-            },
+            }
         ]
 
         await this._patch(`wit/workitems/${testCaseId}`, requestBody)
@@ -269,6 +254,24 @@ class DevAzureClient extends RestClient {
             }
             await this._patch(`wit/workitems/${testCaseId}`, requestBody)
         }
+    }
+
+    /**
+     * Update test case state to 'Ready'
+     * @param testCaseId
+     */
+    async updateTestCaseState(testCaseId) {
+        let requestBody = [{
+            "op": "add",
+            "path": "/fields/System.State",
+            "value": "Ready"
+        },
+            {
+                "op": "add",
+                "path": "/fields/System.Reason",
+                "value": "Completed"
+            }]
+        await this._patch(`wit/workitems/${testCaseId}`, requestBody)
     }
 
     /**

@@ -75,6 +75,7 @@ class PublishResults {
                     for (let parsedTest of parsedTests) {
                         let testCaseKey = await this.azure.getTestCaseIdByTitle(parsedTest.testCaseName, suiteId);
                         await this.azure.addTestCaseIssueLink(testCaseKey, parsedTest.linkedItems);
+                        await this.azure.updateTestCaseState(testCaseKey);
                         let testPointId = await this.azure.getTestPoints(suiteId, testCaseKey);
                         result.push(this.addResult(parsedTest.testCaseName, testCaseKey, testPointId, suiteId, parsedTest))
                         await this.azure.addStepsToTestCase(testCaseKey, parsedTest.testSteps)
