@@ -121,7 +121,17 @@ class DevAzureClient extends RestClient {
                 "op": "replace",
                 "path": "/fields/Microsoft.VSTS.TCM.Steps",
                 "value": xml
-            }
+            },
+            {
+                "op": "add",
+                "path": "/fields/System.State",
+                "value": "Ready"
+            },
+            {
+                "op": "add",
+                "path": "/fields/System.Reason",
+                "value": "Completed"
+            },
         ]
 
         await this._patch(`wit/workitems/${testCaseId}`, requestBody)
