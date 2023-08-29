@@ -43,6 +43,10 @@ class SerenityParser {
     }
 
     getFolderName(json) {
+        if(json.featureTag === undefined) {
+            let folderName = json.userStory.path.split('.')[2];
+            return folderName.charAt(0).toUpperCase()+ folderName.slice(1);
+        }
         return json.featureTag.name.split('/')[0];
     }
 
